@@ -9,7 +9,6 @@
 import Menu from '../components/Menu.vue'
 import TableForStaff from '../components/TableForStaff.vue'
 
-
 export default {
 
   components: {

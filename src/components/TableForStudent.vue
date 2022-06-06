@@ -1,6 +1,13 @@
 <template>
+
   <button class="btn-add" @click="showModal = true">ADD STUDENT</button>
+
   <table>
+    <div class="filter">
+      <p class="filterOpt">Filter:</p>
+      <DropDownSemester class="dropDown" @select="semester = $event"/>
+      <drop-down class="dropDown" @select="department = $event"/>
+    </div>
     <thead class="tableHead">
     <tr class="tableItem">Student ID</tr>
     <tr class="tableItem">Student Name</tr>
@@ -8,10 +15,11 @@
     <tr class="tableItem">Gender</tr>
     <tr class="tableItem">Student Department</tr>
     <tr class="tableItem">Student Email</tr>
+    <tr class="tableItem">Joining Date</tr>
     <tr class="tableItem">Actions</tr>
     </thead>
 
-    <tbody class="tableContent" v-for="(item, index) in itemList" :key="item">
+    <tbody class="tableContent" v-for="(item, index) in filterSemester" :key="item">
     <tr class="tableRow">
       <td class="item" v-show="!item.editMode">{{ item.ID }}</td>
       <input class="item" type="text" v-bind:placeholder="item.ID" v-show="item.editMode" v-model="item.ID">
@@ -21,7 +29,9 @@
              v-model="item.name">
 
       <td class="item" v-show="!item.editMode">{{ item.DOB }}</td>
-      <input class="item" type="text" v-bind:placeholder="item.DOB" v-show="item.editMode" v-model="item.DOB">
+      <input class="item" type="date" name="DOB" v-bind:placeholder="item.DOB" v-show="item.editMode" v-model="item.DOB"
+             min="1900-01-01" max="2022-12-31">
+
 
       <td class="item" v-show="!item.editMode">{{ item.gender }}</td>
       <input type="radio" v-show="item.editMode" v-model="item.gender" value="Female">
@@ -36,6 +46,10 @@
       <td class="item" v-show="!item.editMode">{{ item.email }}</td>
       <input class="item" type="email" v-bind:placeholder="item.email" v-show="item.editMode"
              v-model="item.email">
+
+      <td class="item" v-show="!item.editMode">{{ item.DOJ }}</td>
+      <input class="item" type="date" name="DOJ" v-bind:placeholder="item.DOJ" v-show="item.editMode" v-model="item.DOJ"
+             min="2015-01-01" max="2015-12-31">
 
       <td class="item">
         <button v-show="item.editMode" @click="editComplete(item)">SAVE</button>
@@ -59,7 +73,9 @@
     </div>
     <div>
       <p>Date of Birth</p>
-      <input type="text" v-model="DOB">
+      <div>
+        <input type="date" name="DOB" v-model="DOB" min="1900-01-01" max="2022-12-31">
+      </div>
     </div>
     <div>
       <p>Gender</p>
@@ -76,6 +92,12 @@
       <p>Email</p>
       <input type="email" v-model="email">
     </div>
+    <div>
+      <p>Date of Joining</p>
+      <div>
+        <input type="date" name="DOJ" v-model="DOJ" min="2015-01-01" max="2015-12-31">
+      </div>
+    </div>
     <ul v-if="errors.length">
       <li v-for="error in errors" :key="error">
         {{ error }}
@@ -86,11 +108,14 @@
 </template>
 
 <script>
-import DropDown from "@/components/DropDown.vue"
+import DropDown from "@/components/DropDownDepartment.vue"
+import DropDownSemester from "@/components/DropDownSemester";
+import * as dayjs from "dayjs"
 
 export default {
   components: {
-    DropDown
+    DropDown,
+    DropDownSemester
   },
   data() {
     return {
@@ -102,15 +127,18 @@ export default {
       gender: '',
       department: '',
       email: '',
+      DOJ: '',
+      semester: '',
       errors: [],
       itemList: [
         {
           ID: "FOO",
           name: "Dahye Kim",
-          DOB: "12.12.2002",
+          DOB: "2000-04-06",
           gender: "Female",
           department: "Fachbereich 1",
-          email: "dahye@student.htw-berlin.de"
+          email: "dahye@student.htw-berlin.de",
+          DOJ: "2015-04-06"
         }
       ]
     }
@@ -140,6 +168,10 @@ export default {
         this.errors.push("Please select the department")
       }
 
+      if (!this.isDOBValid) {
+        this.errors.push("DOB invalid")
+      }
+
       if (this.errors.length > 0) {
         return;
       }
@@ -149,13 +181,15 @@ export default {
       const inputEmail = this.email
       const inputDOB = this.DOB
       const inputGender = this.gender
+      const inputDOJ = this.DOJ
       this.itemList.push({
         ID: inputID,
         name: inputName,
         DOB: inputDOB,
         gender: inputGender,
         department: this.department,
-        email: inputEmail
+        email: inputEmail,
+        DOJ: inputDOJ
       })
       this.editMode = false
       this.clearAll()
@@ -179,13 +213,17 @@ export default {
     clearGender() {
       this.gender = ''
     },
+    clearDOJ() {
+      this.DOJ = ''
+    },
     clearAll() {
       this.clearID()
       this.clearName()
       this.clearEmail()
-      this.clearDepartment()
       this.clearDOB()
+      this.clearDepartment()
       this.clearGender()
+      this.clearDOJ()
     },
     deleteItem(index) {
       this.itemList.splice(index, 1)
@@ -194,12 +232,18 @@ export default {
       item.editMode = true
     },
     editComplete(item) {
+      const oldest = dayjs("31-12-1963")
+      const newest = dayjs("01-01-2016")
+      if (dayjs(item.DOB).isBefore(oldest) || dayjs(item.DOB).isAfter(newest)) {
+        window.alert("DOB invalid")
+        return
+      }
       item.editMode = false
     }
   },
   computed: {
     isValid() {
-      return this.isIDValid && this.isNameValid && this.isEmailValid && this.isDepartmentValid
+      return this.isIDValid && this.isNameValid && this.isEmailValid && this.isDepartmentValid && this.isDOBValid
     },
     isIDValid() {
       return this.ID !== ''
@@ -212,6 +256,31 @@ export default {
     },
     isDepartmentValid() {
       return this.department !== ''
+    },
+    isDOBValid() {
+      return this.DOB > "31-12-1963" && this.DOB < "01-01-2016"
+    },
+    filterSemester() {
+      return this.itemList
+          .filter((student) => {
+            if (!this.semester || this.semester === "All semester") {
+              return student
+            }
+            if (this.semester === "Summer" && dayjs(student.DOJ).month() > 2 && dayjs(student.DOJ).month() < 8) {
+              return student
+            }
+            if (this.semester === "Winter" && dayjs(student.DOJ).month() < 2 && dayjs(student.DOJ).month() > 8) {
+              return student
+            }
+          })
+          .filter((student) => {
+            if (!this.department || this.department === "All department") {
+              return student
+            }
+            if (this.department === student.department) {
+              return student
+            }
+          })
     }
   }
 }
@@ -219,12 +288,24 @@ export default {
 
 <style scoped>
 
+.filterOpt {
+  align-self: center;
+}
+
+.dropDown {
+  margin: 5px;
+}
+
+.filter {
+  display: flex;
+}
+
 table {
   table-layout: fixed;
   width: 80%;
-  position:relative;
-  left:80px;
-  top:2px
+  position: relative;
+  left: 80px;
+  top: 2px
 }
 
 .tableHead {

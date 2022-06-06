@@ -1,5 +1,5 @@
 <template>
-  <div class="dropDown" :data-value="value" :data-list="departmentList">
+  <div class="dropDown" :data-value="value" :data-list="semesterList">
     <div class="selector" @click="toggle()">
       <div class="label">
         <span>{{ value }}</span>
@@ -7,7 +7,7 @@
       <div class="arrow" :class="{ expanded: visible }"></div>
       <div :class="{ hidden : !visible, visible }">
         <ul>
-          <li :class="{ current: item === value }" v-for="item in departmentList" @click="select(item)" :key="item">
+          <li :class="{ current: item === value }" v-for="item in semesterList" @click="select(item)" :key="item">
             {{ item }}
           </li>
         </ul>
@@ -21,8 +21,8 @@ export default {
   data() {
     return {
       visible: false,
-      value: 'Select the Department',
-      departmentList: ["Fachbereich 1", "Fachbereich 2", "Fachbereich 3", "Fachbereich 4"],
+      value: 'Select the Semester',
+      semesterList: ["All semester", "Summer", "Winter"],
     }
   },
   methods: {
@@ -39,11 +39,14 @@ export default {
 
 <style scoped>
 
+span {
+  margin-right: 20px
+}
+
 .selector {
   border: 1px solid gainsboro;
   background: #F8F8F8;
   position: relative;
-  z-index: 1;
 }
 
 .arrow {
@@ -89,9 +92,9 @@ li {
 }
 
 li:hover {
-   color: white;
-   background: mediumaquamarine;
- }
+  color: white;
+  background: mediumaquamarine;
+}
 
 .current {
   background: white;
